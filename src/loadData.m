@@ -1,4 +1,4 @@
-function Data = loadData(Data,MyFiles,subNum)
+function Data = loadData(Data,MyFiles,subNum,dataPath)
     s = strcat(dataPath,(MyFiles(subNum).name));
     tmpData = load(s);
     dataFieldName = fieldnames(tmpData);

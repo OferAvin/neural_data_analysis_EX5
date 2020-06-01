@@ -40,14 +40,14 @@ Data = buildDataStruct(numOfPatient);
 
 
 %% load raw data
-Data = loadData(Data,MyFiles,subNum);
+Data = loadData(Data,MyFiles,subNum,dataPath);
 
 %% split data into windows
 overlap = calcOverLap(signalWindow,stepWindow);
 signalWindowed = buffer(Data.CurrData.rawData(currElctrode,:) ,signalWindow*Fs ,overlap*Fs, 'nodelay');
 
 %% calculating pWelch
-Data.CurrData.pWelchRes = calcPwelch(Data,signalWindowed,pwelchWindow,f,Fs);
+Data.CurrData.pWelchRes = calcPwelch(signalWindowed,pwelchWindow,pwelchOverlap,f,Fs);
 
 Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
 
@@ -59,4 +59,4 @@ beta_idx = find(f > beta(1) & f <= beta(end));
 gamma_idx = find(f > gamma(1) & f <= gamma(end));
 
 
-relativePower = extractRelativePower(specMetrix,delta_idx);
+relativePower = extractRelativePower(Data.CurrData.pWelchRes,delta_idx);
