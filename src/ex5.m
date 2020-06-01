@@ -27,6 +27,9 @@ dataPath = '..\DATA_DIR\';
 subNum = 1;
 currElctrode = 5;
 currSub = "patient1";
+nOfFeat = 1;
+index = 1;
+
 
 
 MyFiles = dir('..\DATA_DIR\**\*.mat');       %take files in that path which ands with .mat
@@ -40,23 +43,35 @@ Data = buildDataStruct(numOfPatient);
 
 
 %% load raw data
-Data = loadData(Data,MyFiles,subNum);
+Data = loadData(Data,MyFiles,subNum,dataPath);
 
 %% split data into windows
 overlap = calcOverLap(signalWindow,stepWindow);
 signalWindowed = buffer(Data.CurrData.rawData(currElctrode,:) ,signalWindow*Fs ,overlap*Fs, 'nodelay');
 
 %% calculating pWelch
-Data.CurrData.pWelchRes = calcPwelch(Data,signalWindowed,pwelchWindow,f,Fs);
+Data.CurrData.pWelchRes = calcPwelch(signalWindowed,pwelchWindow,pwelchOverlap,f,Fs);
 
 Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
 
 
 delta_idx = find(f >= delta(1) & f <= delta(end));
 theta_idx = find(f > theta(1) & f <= theta(end));
-alpha_idx = find(f > lowAlpha(1) & f <= highAlpha(end));
+alphaLow_idx = find(f > lowAlpha(1) & f <= lowAlpha(end));
+alphaHigh_idx = find(f > highAlpha(1) & f <= highAlpha(end));
 beta_idx = find(f > beta(1) & f <= beta(end));
 gamma_idx = find(f > gamma(1) & f <= gamma(end));
 
+Data.patient1(index,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,delta_idx);
+Data.patient1(index+1,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,theta_idx);
+Data.patient1(index+2,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,alphaLow_idx);
+Data.patient1(index+3,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,alphaHigh_idx);
+Data.patient1(index+4,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,beta_idx);
+Data.patient1(index+5,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,gamma_idx);
+% relativePowerDelta = extractRelativePower(Data.CurrData.pWelchRes,delta_idx);
+% relativePowerTheta = extractRelativePower(Data.CurrData.pWelchRes,theta_idx);
+% relativePowerLowAlpfa = extractRelativePower(Data.CurrData.pWelchRes,alphaLow_idx);
+% relativePowerHighAlpha = extractRelativePower(Data.CurrData.pWelchRes,alphaHigh_idx);
+% relativePowerBeta = extractRelativePower(Data.CurrData.pWelchRes,beta_idx);
+% relativePowerGamma = extractRelativePower(Data.CurrData.pWelchRes,gamma_idx);
 
-relativePower = extractRelativePower(specMetrix,delta_idx);
