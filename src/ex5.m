@@ -26,6 +26,6 @@ for i = 1:numOfPatient
 end
 overLap = calcOverLap(signalWindow,stepWindow);
 signalWindowed = buffer(Data.patient1.data(3,:) ,40*Fs ,overLap*Fs, 'nodelay');
-specVec = pwelch(signalWindowed ,window_sz , overlap_sz ,Fs ,f)';
+specVec = pwelch(signalWindowed ,windowSec*Fs, overlapSec*Fs ,f ,Fs)';
 
 
