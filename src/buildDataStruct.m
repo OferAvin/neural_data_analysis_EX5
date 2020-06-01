@@ -1,10 +1,11 @@
 % build struct with the data from the files
 %for each patient load his data
-function Data = buildDataStruct(files,numOfPatient,location)
+function Data = buildDataStruct(numOfPatient)
     Data = struct();
-    %for i = 1:numOfPatient
-       curPatient = char("patient");
-       s = strcat(location,(files(1).name));
-       Data.(curPatient) = load(s); 
-    %end
+    for i = 1:numOfPatient
+       curPatient = char("patient" + i);
+       Data.(curPatient) = 0;
+    end
+    Data.CurrData.rawData = 0;
+    Data.CurrData.pWelchRes = 0;
 end
