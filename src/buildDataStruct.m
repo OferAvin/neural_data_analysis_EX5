@@ -7,5 +7,6 @@ function Data = buildDataStruct(numOfPatient)
        Data.(curPatient) = 0;
     end
     Data.CurrData.rawData = 0;
-    Data.CurrData.pWelchRes = 0;
+     Data.CurrData.pWelchRes = 0;
+    Data.CurrData.pWelchResNorm = 0;
 end

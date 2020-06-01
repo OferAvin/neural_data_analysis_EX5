@@ -43,11 +43,11 @@ Data = buildDataStruct(numOfPatient);
 Data = loadData(Data,MyFiles,subNum,dataPath);
 
 %% split data into windows
-overlap = calcOverLap(signalWindow,stepWindow);
-signalWindowed = buffer(Data.CurrData.rawData(currElctrode,:) ,signalWindow*Fs ,overlap*Fs, 'nodelay');
+allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
 
 %% calculating pWelch
-Data.CurrData.pWelchRes = calcPwelch(signalWindowed,pwelchWindow,pwelchOverlap,f,Fs);
+[Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
+    calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
 
 Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
 
