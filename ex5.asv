@@ -5,7 +5,7 @@ close all
 %% expariment param
 Fs = 250;
 f = 1:0.1:40;
-signal_window = 40;                         % in sec
+signalWindow = 80;                         % in sec
 stepWindow = 20;
 location = '..\DATA_DIR\';
 
@@ -23,5 +23,6 @@ for i = 1:numOfPatient
    Data.(curPatient) = load(s); 
 end
 overLap = calcOverLap(signalWindow,stepWindow);
-signal_windowed = buffer(Data.patient1.data(3,:) , signalWindow*Fs ,overLap, 'nodelay');
+signalWindowed = buffer(Data.patient1.data(3,:) ,40*Fs ,overLap*Fs, 'nodelay');
+
 

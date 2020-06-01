@@ -5,8 +5,10 @@ close all
 %% expariment param
 Fs = 250;
 f = 1:0.1:40;
-signalWindow = 40;                         % in sec
-stepWindow = 20;
+signalWindow = 40;          % signal length in secs
+stepWindow = 20;            % signal overlap in secs
+windowSec = 5;              %window length in secs
+overlapSec = 1;             %window overlap length in secs
 location = '..\DATA_DIR\';
 
 
@@ -23,5 +25,7 @@ for i = 1:numOfPatient
    Data.(curPatient) = load(s); 
 end
 overLap = calcOverLap(signalWindow,stepWindow);
-signal_windowed = buffer(Data.patient1.data(3,:) ,40*Fs ,overLap*Fs, 'nodelay');
+signalWindowed = buffer(Data.patient1.data(3,:) ,40*Fs ,overLap*Fs, 'nodelay');
+specVec = pwelch(signalWindowed ,window_sz , overlap_sz ,Fs ,f)';
+
 
