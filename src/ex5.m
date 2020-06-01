@@ -29,7 +29,7 @@ numOfPatient = length(MyFiles);
 Data = buildDataStruct(MyFiles,numOfPatient,location);
 
 overLap = calcOverLap(signalWindow,stepWindow);
-signalWindowed = buffer(Data.patient1.data(5,:) ,40*Fs ,overLap*Fs, 'nodelay');
+signalWindowed = buffer(Data.patient.data(5,:) ,40*Fs ,overLap*Fs, 'nodelay');
 specMetrix = pwelch(signalWindowed ,windowSec*Fs, overlapSec*Fs ,f ,Fs);
 pNorm = specMetrix/(sum(specMetrix,1));
 
