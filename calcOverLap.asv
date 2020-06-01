@@ -1,0 +1,4 @@
+function overLap = calcOverLap(windowSize,step)
+    ratio = windowSize/step;
+    overLap = (1-ratio)*window;
+end
