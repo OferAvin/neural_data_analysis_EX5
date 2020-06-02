@@ -82,17 +82,11 @@ index = index + 1;  %updating index
 [Data.patient1(index,:),Data.patient1(index+1,:)] =...
     spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
 
-% calculating relative power for each freq bend
-for j = 1:nFreqBands
-    Data.patient1(index,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
-    index = index + 1; %updating index
-end
-
 Data.(currSub)(index,:)= spectralMoment(Data,f);
 index = index + 1;
 
 Data.(currSub)(index,:) = spectralEdge(Data,f,edgePrct);
 index = index + 1;
-% Data.patient1(index,nOfFeat) = rootTotalPower(Data.CurrData.pWelchRes);
+
 
 
