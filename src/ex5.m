@@ -82,6 +82,7 @@ index = index + 1;  %updating index
 % calculating spectral Slop and Intercept
 [Data.(currSub)(index,:),Data.(currSub)(index+1,:)] =...
     spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
+index = index + 2;
 
 % calculating spectral Moment
 Data.(currSub)(index,:)= spectralMoment(Data,f);
@@ -95,13 +96,12 @@ index = index + 1;
 Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
 index = index + 1;  %updating index
 
-meanVecPerFeat = mean(Data.(currSub),2);
-stdVecPerFeat = std(Data.(currSub),[],2);
-Data.(currSub) = Data.(currSub)- meanVecPerFeat;
-Data.(currSub) = Data.(currSub)./stdVecPerFeat;
+% meanVecPerFeat = mean(Data.(currSub),2);
+% stdVecPerFeat = std(Data.(currSub),[],2);
+% Data.(currSub) = Data.(currSub)- meanVecPerFeat;
+% Data.(currSub) = Data.(currSub)./stdVecPerFeat;
 
 
-%Data.(currSub) = zscore(Data.(currSub),1);
-[Z,mean1,std1] = zscore(Data.(currSub)',1);
+Data.(currSub) = (zscore(Data.(currSub)',1))';
 
 
