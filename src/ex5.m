@@ -66,12 +66,14 @@ gamma_idx = find(f > gamma(1) & f <= gamma(end));
 
 waveIdx = {delta_idx theta_idx alphaLow_idx alphaHigh_idx beta_idx gamma_idx};
 
-% calculating ???????? ????? for each freq bend
+% calculating relative power for each freq bend
 for j = 1:nFreqBands
-    Data.patient1(index+j-1,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
+    Data.patient1(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
+    index = index + 1;  %updating index
 end
-index = index + nFreqBands;  %updating index
 
-Data.patient1(index,nOfFeat) = rootTotalPower(Data.CurrData.pWelchRes);
+
+Data.patient1(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
+index = index + 1;  %updating index
 
 
