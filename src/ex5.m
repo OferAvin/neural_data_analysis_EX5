@@ -30,7 +30,15 @@ currSub = "patient1";
 nOfFeat = 1;
 index = 1;
 
+% isolating freq bend range
+delta_idx = find(f >= delta(1) & f <= delta(end));
+theta_idx = find(f > theta(1) & f <= theta(end));
+alphaLow_idx = find(f > lowAlpha(1) & f <= lowAlpha(end));
+alphaHigh_idx = find(f > highAlpha(1) & f <= highAlpha(end));
+beta_idx = find(f > beta(1) & f <= beta(end));
+gamma_idx = find(f > gamma(1) & f <= gamma(end));
 
+waveIdx = {delta_idx theta_idx alphaLow_idx alphaHigh_idx beta_idx gamma_idx};
 
 MyFiles = dir('..\DATA_DIR\**\*.mat');       %take files in that path which ands with .mat
 %ensure files validity
@@ -56,22 +64,15 @@ allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
 
 Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
 
-% isolating freq bend range
-delta_idx = find(f >= delta(1) & f <= delta(end));
-theta_idx = find(f > theta(1) & f <= theta(end));
-alphaLow_idx = find(f > lowAlpha(1) & f <= lowAlpha(end));
-alphaHigh_idx = find(f > highAlpha(1) & f <= highAlpha(end));
-beta_idx = find(f > beta(1) & f <= beta(end));
-gamma_idx = find(f > gamma(1) & f <= gamma(end));
 
-waveIdx = {delta_idx theta_idx alphaLow_idx alphaHigh_idx beta_idx gamma_idx};
 
-% calculating ???????? ????? for each freq bend
+% calculating relative power for each freq bend
 for j = 1:nFreqBands
-    Data.patient1(index+j-1,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
+    Data.patient1(index,nOfFeat) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
+    index = index + 1; %updating index
 end
-index = index + nFreqBands;  %updating index
 
-Data.patient1(index,nOfFeat) = rootTotalPower(Data.CurrData.pWelchRes);
+Data.(currSub)(index)= spectralMoment(Data,f);
+% Data.patient1(index,nOfFeat) = rootTotalPower(Data.CurrData.pWelchRes);
 
 
