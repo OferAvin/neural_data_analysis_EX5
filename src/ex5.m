@@ -69,14 +69,14 @@ Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
 
 % calculating relative power and relative log power for each freq bend
 for j = 1:nFreqBands
-    Data.patient1(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
-    Data.patient1(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waveIdx(j)));
+    Data.(currSub)(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
+    Data.(currSub)(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waveIdx(j)));
     index = index + 1;  %updating index
 end
 
 index = index + nFreqBands;  %updating index
 
-Data.patient1(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
+Data.(currSub)(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
 index = index + 1;  %updating index
 
 [Data.patient1(index,:),Data.patient1(index+1,:)] =...
@@ -87,6 +87,10 @@ index = index + 1;
 
 Data.(currSub)(index,:) = spectralEdge(Data,f,edgePrct);
 index = index + 1;
+
+Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
+index = index + 1;  %updating index
+
 
 
 
