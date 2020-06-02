@@ -106,3 +106,4 @@ Data.(currSub) = (zscore(Data.(currSub)',1))';
 
 %% PCA
 Data.(currSub) = Data.(currSub) - mean(Data.(currSub));  
+Data.(currSub) = Data.(currSub)*Data.(currSub)'/nWindows-1;
