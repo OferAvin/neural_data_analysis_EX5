@@ -58,7 +58,7 @@ Data = loadData(Data,MyFiles,subNum,dataPath);
 allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
 nWindows = size(allWindowes,2); 
 
-%% calculating pWelch
+%calculating pWelch
 
 [Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
     calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
@@ -73,23 +73,34 @@ for j = 1:nFreqBands
     Data.(currSub)(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waveIdx(j)));
     index = index + 1;  %updating index
 end
-
 index = index + nFreqBands;  %updating index
 
+% calculating root Total Power
 Data.(currSub)(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
 index = index + 1;  %updating index
 
-[Data.patient1(index,:),Data.patient1(index+1,:)] =...
+% calculating spectral Slop and Intercept
+[Data.(currSub)(index,:),Data.(currSub)(index+1,:)] =...
     spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
 
+% calculating spectral Moment
 Data.(currSub)(index,:)= spectralMoment(Data,f);
 index = index + 1;
 
+% calculating spectral Edge
 Data.(currSub)(index,:) = spectralEdge(Data,f,edgePrct);
 index = index + 1;
 
+% calculating spectral Entropy
 Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
 index = index + 1;  %updating index
+
+meanVecPerFeat = mean(Data.(currSub),2);
+stdVecPerFeat = std(Data.(currSub),2);
+Data.(currSub) = Data.(currSub)- meanVecPerFeat;
+Data.(currSub) = Data.(currSub)/stdVecPerFeat;
+
+
 
 
 
