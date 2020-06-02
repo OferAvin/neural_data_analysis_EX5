@@ -96,7 +96,7 @@ Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
 index = index + 1;  %updating index
 
 meanVecPerFeat = mean(Data.(currSub),2);
-stdVecPerFeat = std(Data.(currSub),2);
+stdVecPerFeat = std(Data.(currSub),[],2);
 Data.(currSub) = Data.(currSub)- meanVecPerFeat;
 Data.(currSub) = Data.(currSub)/stdVecPerFeat;
 
