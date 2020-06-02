@@ -98,10 +98,10 @@ index = index + 1;  %updating index
 meanVecPerFeat = mean(Data.(currSub),2);
 stdVecPerFeat = std(Data.(currSub),[],2);
 Data.(currSub) = Data.(currSub)- meanVecPerFeat;
-Data.(currSub) = Data.(currSub)/stdVecPerFeat;
+Data.(currSub) = Data.(currSub)./stdVecPerFeat;
 
 
-
-
+%Data.(currSub) = zscore(Data.(currSub),1);
+[Z,mean1,std1] = zscore(Data.(currSub),1);
 
 
