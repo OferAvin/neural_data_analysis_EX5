@@ -102,6 +102,6 @@ Data.(currSub) = Data.(currSub)./stdVecPerFeat;
 
 
 %Data.(currSub) = zscore(Data.(currSub),1);
-[Z,mean1,std1] = zscore(Data.(currSub),1);
+[Z,mean1,std1] = zscore(Data.(currSub)',1);
 
 
