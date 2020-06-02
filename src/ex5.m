@@ -104,4 +104,5 @@ index = index + 1;  %updating index
 
 Data.(currSub) = (zscore(Data.(currSub)',1))';
 
-
+%% PCA
+Data.(currSub) = Data.(currSub) - mean(Data.(currSub));  
