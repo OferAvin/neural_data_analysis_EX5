@@ -47,6 +47,7 @@ Data = loadData(Data,MyFiles,subNum,dataPath);
 
 %% split data into windows
 allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
+nWindows = size(allWindowes,2); 
 
 %% calculating pWelch
 
@@ -77,6 +78,9 @@ index = index + nFreqBands;  %updating index
 
 Data.patient1(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
 index = index + 1;  %updating index
+
+[Data.patient1(index,:),Data.patient1(index+1,:)] =...
+    spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
 
 
 
