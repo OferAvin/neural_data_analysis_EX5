@@ -1,3 +1,4 @@
-function RTP = rootTotalPower(Data)
-    sqrt(sum(Data.curData.pWelchRes,1));
+function RTP = rootTotalPower(pWelchRes)
+    power = sum(pWelchRes,1);
+    RTP = sqrt(power);
 end
