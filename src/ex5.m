@@ -96,14 +96,15 @@ index = index + 1;
 Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
 index = index + 1;  %updating index
 
-% meanVecPerFeat = mean(Data.(currSub),2);
-% stdVecPerFeat = std(Data.(currSub),[],2);
-% Data.(currSub) = Data.(currSub)- meanVecPerFeat;
-% Data.(currSub) = Data.(currSub)./stdVecPerFeat;
-
-
 Data.(currSub) = (zscore(Data.(currSub)',1))';
 
 %% PCA
-Data.(currSub) = Data.(currSub) - mean(Data.(currSub));  
+Data.(currSub) = Data.(currSub) - mean(Data.(currSub),2);  
 Data.(currSub) = Data.(currSub)*Data.(currSub)'/nWindows-1;
+
+
+
+
+scatter3(c(1,:),c(2,:),c(3,:));
+
+colorbar;
