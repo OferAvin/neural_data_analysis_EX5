@@ -26,7 +26,7 @@ edgePrct = 90;          %spectral edge percentaile
 dataPath = '..\DATA_DIR\';
 
 subNum = 1;
-currElctrode = 5;
+% currElctrode = 5;
 currSub = "patient1";
 nOfFeat = 1;
 index = 1;
@@ -53,57 +53,70 @@ Data = buildDataStruct(numOfPatient);
 
 %% load raw data
 Data = loadData(Data,MyFiles,subNum,dataPath);
+for currElctrode = 1:numOfElctrodes
 
-%% split data into windows
-allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
-nWindows = size(allWindowes,2); 
+    %% split data into windows
+    allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
+    nWindows = size(allWindowes,2); 
 
-%calculating pWelch
+    %calculating pWelch
 
-[Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
-    calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
+    [Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
+        calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
+
+    if currElctrode == 1
+        Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
+    end
 
 
-Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
 
+    % calculating relative power and relative log power for each freq bend
+    for j = 1:nFreqBands
+        Data.(currSub)(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
+        Data.(currSub)(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waveIdx(j)));
+        index = index + 1;  %updating index
+    end
+    index = index + nFreqBands;  %updating index
 
-% calculating relative power and relative log power for each freq bend
-for j = 1:nFreqBands
-    Data.(currSub)(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
-    Data.(currSub)(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waveIdx(j)));
+    % calculating root Total Power
+    Data.(currSub)(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
+    index = index + 1;  %updating index
+
+    % calculating spectral Slop and Intercept
+    [Data.(currSub)(index,:),Data.(currSub)(index+1,:)] =...
+        spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
+    index = index + 2;
+
+    % calculating spectral Moment
+    Data.(currSub)(index,:)= spectralMoment(Data,f);
+    index = index + 1;
+
+    % calculating spectral Edge
+    Data.(currSub)(index,:) = spectralEdge(Data,f,edgePrct);
+    index = index + 1;
+
+    % calculating spectral Entropy
+    Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
     index = index + 1;  %updating index
 end
-index = index + nFreqBands;  %updating index
+    
 
-% calculating root Total Power
-Data.(currSub)(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
-index = index + 1;  %updating index
-
-% calculating spectral Slop and Intercept
-[Data.(currSub)(index,:),Data.(currSub)(index+1,:)] =...
-    spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
-index = index + 2;
-
-% calculating spectral Moment
-Data.(currSub)(index,:)= spectralMoment(Data,f);
-index = index + 1;
-
-% calculating spectral Edge
-Data.(currSub)(index,:) = spectralEdge(Data,f,edgePrct);
-index = index + 1;
-
-% calculating spectral Entropy
-Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
-index = index + 1;  %updating index
-
-% meanVecPerFeat = mean(Data.(currSub),2);
-% stdVecPerFeat = std(Data.(currSub),[],2);
-% Data.(currSub) = Data.(currSub)- meanVecPerFeat;
-% Data.(currSub) = Data.(currSub)./stdVecPerFeat;
+%     meanVecPerFeat = mean(Data.(currSub),2);
+%     stdVecPerFeat = std(Data.(currSub),[],2);
+%     Data.(currSub) = Data.(currSub)- meanVecPerFeat;
+%     Data.(currSub) = Data.(currSub)./stdVecPerFeat;
 
 
-Data.(currSub) = (zscore(Data.(currSub)',1))';
+Data.(currSub) = (zscore(Data.(currSub),0,2));
 
 %% PCA
-Data.(currSub) = Data.(currSub) - mean(Data.(currSub));  
-Data.(currSub) = Data.(currSub)*Data.(currSub)'/nWindows-1;
+
+Data.(currSub) = Data.(currSub) - mean(Data.(currSub),2);  
+C = Data.(currSub)*Data.(currSub)'/nWindows-1;
+[V,D] = eigs(C,3);
+eigenvalues = diag(D);
+% eigenvaluesSort = sort(eigenvalues,'descend');
+% Encoding
+%y = V'*(
+
+
