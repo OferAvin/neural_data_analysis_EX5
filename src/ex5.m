@@ -1,3 +1,4 @@
+tic
 %MATLAB 2019a
 clear all
 close all
@@ -17,109 +18,113 @@ lowAlpha = 8:0.1:11.5;
 highAlpha = 11.5:0.1:15;
 beta = 15:0.1:30;
 gamma = 30:0.1:40;
+waves = extractWaves(delta, theta, lowAlpha, highAlpha, beta, gamma, f);
 
 numOfElctrodes = 19;
 FeatPerElctrodes = 18;
 numOfFeat = numOfElctrodes*FeatPerElctrodes;
 edgePrct = 90;          %spectral edge percentaile
 
-dataPath = '..\DATA_DIR\';
 
 subNum = 1;
+%% files parameters
+filesPath = '..\DATA_DIR\**\';
+extension = 'mat';
+containedCahr = 'p*\d*_*s*\d';
+
 % currElctrode = 5;
-currSub = "patient1";
 nOfFeat = 1;
 index = 1;
 
-% isolating freq bend range
-delta_idx = find(f >= delta(1) & f <= delta(end));
-theta_idx = find(f > theta(1) & f <= theta(end));
-alphaLow_idx = find(f > lowAlpha(1) & f <= lowAlpha(end));
-alphaHigh_idx = find(f > highAlpha(1) & f <= highAlpha(end));
-beta_idx = find(f > beta(1) & f <= beta(end));
-gamma_idx = find(f > gamma(1) & f <= gamma(end));
+[Data,nPatients] = structFromFileName(filesPath, extension, containedCahr);
 
-waveIdx = {delta_idx theta_idx alphaLow_idx alphaHigh_idx beta_idx gamma_idx};
+%load raw data
 
-MyFiles = dir('..\DATA_DIR\**\*.mat');       %take files in that path which ands with .mat
-%ensure files validity
-charToValidate = 'p*\d*_*s*\d';            
-validateFileNames = cellfun('isempty',regexp({MyFiles.name},charToValidate));   %check for files that contains charToValidate
-MyFiles(validateFileNames == 1) = [];       %delete non matching files
-numOfPatient = length(MyFiles);
-% build struct with the data from the files
-Data = buildDataStruct(numOfPatient);
+for subNum = 1:nPatients
+    
+    Data = loadData(Data,subNum);
+    currSub = char("patient" + subNum);
+        
+    for currElctrode = 1:numOfElctrodes
 
+        % split data into windows
+        allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
+        nWindows = size(allWindowes,2); 
 
-%% load raw data
-Data = loadData(Data,MyFiles,subNum,dataPath);
-for currElctrode = 1:numOfElctrodes
+        %calculating pWelch
 
-    %% split data into windows
-    allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
-    nWindows = size(allWindowes,2); 
+        [Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
+            calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
 
-    %calculating pWelch
+        % collceting features
+        if currElctrode == 1
+            Data.(currSub).feat = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
+        end
 
-    [Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
-        calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
+        % calculating relative power and relative log power for each freq bend
+        for j = 1:nFreqBands
+            Data.(currSub).feat(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waves(j)));
+            Data.(currSub).feat(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waves(j)));
+            index = index + 1;  %updating index
+        end
+        index = index + nFreqBands;  %updating index
 
-    if currElctrode == 1
-        Data.(currSub) = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
-    end
+        % calculating root Total Power
+        Data.(currSub).feat(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
+        index = index + 1;  %updating index
 
+        % calculating spectral Slop and Intercept
+        [Data.(currSub).feat(index,:),Data.(currSub).feat(index+1,:)] =...
+            spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
+        index = index + 2;
 
+        % calculating spectral Moment
+        Data.(currSub).feat(index,:)= spectralMoment(Data,f);
+        index = index + 1;
 
-    % calculating relative power and relative log power for each freq bend
-    for j = 1:nFreqBands
-        Data.(currSub)(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waveIdx(j)));
-        Data.(currSub)(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waveIdx(j)));
+        % calculating spectral Edge
+        Data.(currSub).feat(index,:) = spectralEdge(Data,f,edgePrct);
+        index = index + 1;
+
+        % calculating spectral Entropy
+        Data.(currSub).feat(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
         index = index + 1;  %updating index
     end
-    index = index + nFreqBands;  %updating index
 
-    % calculating root Total Power
-    Data.(currSub)(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
-    index = index + 1;  %updating index
 
-    % calculating spectral Slop and Intercept
-    [Data.(currSub)(index,:),Data.(currSub)(index+1,:)] =...
-        spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
-    index = index + 2;
 
-    % calculating spectral Moment
-    Data.(currSub)(index,:)= spectralMoment(Data,f);
-    index = index + 1;
+    %     meanVecPerFeat = mean(Data.(currSub).feat,2);
+    %     stdVecPerFeat = std(Data.(currSub).feat,[],2);
+    %     Data.(currSub).feat = Data.(currSub).feat- meanVecPerFeat;
+    %     Data.(currSub).feat = Data.(currSub).feat./stdVecPerFeat;
 
-    % calculating spectral Edge
-    Data.(currSub)(index,:) = spectralEdge(Data,f,edgePrct);
-    index = index + 1;
 
-    % calculating spectral Entropy
-    Data.(currSub)(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
-    index = index + 1;  %updating index
+    Data.(currSub).feat = (zscore(Data.(currSub).feat,0,2));
+
+    %% PCA
+
+    Data.(currSub).feat = Data.(currSub).feat - mean(Data.(currSub).feat,2);  
+    C = Data.(currSub).feat*Data.(currSub).feat'/nWindows-1;
+    [EV,D] = eigs(C,3);
+    Data.(currSub).PCA = EV' * Data.(currSub).feat;
+
+    eigenvalues = diag(D);
+    % eigenvaluesSort = sort(eigenvalues,'descend');
+    % Encoding
+    %y = V'*(
+
+
+    figure('Units','normalized','Position',[0 0 1 1]);
+    sgtitle(Data.(currSub).pNum);
+    hold on;
+    subplot(1,2,1)
+    scatter(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),20,1:nWindows,'filled');
+    colorbar;
+
+    subplot(1,2,2)
+    scatter3(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),Data.(currSub).PCA(3,:),20,1:nWindows,'filled');
+    colorbar;
+    hold off;
 end
-    
-
-
-%     meanVecPerFeat = mean(Data.(currSub),2);
-%     stdVecPerFeat = std(Data.(currSub),[],2);
-%     Data.(currSub) = Data.(currSub)- meanVecPerFeat;
-%     Data.(currSub) = Data.(currSub)./stdVecPerFeat;
-
-
-Data.(currSub) = (zscore(Data.(currSub),0,2));
-
-%% PCA
-
-Data.(currSub) = Data.(currSub) - mean(Data.(currSub),2);  
-C = Data.(currSub)*Data.(currSub)'/nWindows-1;
-[V,D] = eigs(C,3);
-eigenvalues = diag(D);
-% eigenvaluesSort = sort(eigenvalues,'descend');
-% Encoding
-%y = V'*(
-
-
-
+toc
 

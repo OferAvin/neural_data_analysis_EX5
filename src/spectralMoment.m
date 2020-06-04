@@ -1,3 +1,3 @@
 function spectralMoment = spectralMoment(Data,f)
-    spectralMoment = sum(f*Data.CurrData.pWelchResNorm,1);
+    spectralMoment = f*Data.CurrData.pWelchResNorm;
 end
