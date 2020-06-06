@@ -5,8 +5,10 @@ function Data = buildDataStruct(Files,numOfPatient)
     Data = struct();
     for i = 1:numOfPatient
         pNum = char(extractBetween(Files(i).name,"p","_"));
+        sNum = char(extractBetween(Files(i).name,"s","."));
         curPatient = char("patient" + i);
         Data.(curPatient).pNum = pNum;
+        Data.(curPatient).sNum = sNum;
         Data.(curPatient).feat = 0;
         Data.(curPatient).PCA = 0;
     end

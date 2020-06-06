@@ -4,13 +4,16 @@ clear all
 close all
 
 %% expariment param
+%data
 Fs = 250;
 f = 1:0.1:40;
-signalWindow = 40;          % signal length in secs
-stepWindow = 20;            % signal overlap in secs
+windLen = 30;            % signal length in secs
+windStep = 15;              % signal overlap in secs
 pwelchWindow = 5;           %window length in secs
 pwelchOverlap = 1;          %window overlap length in secs
+numOfElctrodes = 19;
 
+%bends
 nFreqBands = 6;
 delta = 1:0.1:4.5;
 theta = 4.5:0.1:8;
@@ -20,40 +23,38 @@ beta = 15:0.1:30;
 gamma = 30:0.1:40;
 waves = extractWaves(delta, theta, lowAlpha, highAlpha, beta, gamma, f);
 
-numOfElctrodes = 19;
+% features
 FeatPerElctrodes = 18;
 numOfFeat = numOfElctrodes*FeatPerElctrodes;
 edgePrct = 90;          %spectral edge percentaile
 
+% pca
 dimReductionTo = 3;     %pca will reduce data dim to that number
 
-%% files parameters
-filesPath = '..\DATA_DIR\**\';
+%files parameters
+filesPath = '..\DATA_DIR\';
 extension = 'mat';
 containedCahr = 'p*\d*_*s*\d';
 
-% currElctrode = 5;
-nOfFeat = 1;
-index = 1;
+
+%% Start proccess
 
 [Data,nPatients] = structFromFileName(filesPath, extension, containedCahr);
-
-%load raw data
 
 for subNum = 1:nPatients
     
     Data = loadData(Data,subNum);
     currSub = char("patient" + subNum);
     
-    index = 1;
+    nextFeatIdx = 1;
     for currElctrode = 1:numOfElctrodes
 
         % split data into windows
-        allWindowes = splitSignal(Data,signalWindow,stepWindow,currElctrode,Fs);
+        allWindowes = splitSignal(Data,windLen,windStep,currElctrode,Fs);
         nWindows = size(allWindowes,2); 
-
+        
+        
         %calculating pWelch
-
         [Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
             calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
 
@@ -64,32 +65,32 @@ for subNum = 1:nPatients
         
         % calculating relative power and relative log power for each freq bend
         for j = 1:nFreqBands
-            Data.(currSub).feat(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waves(j)));
-            Data.(currSub).feat(index+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waves(j)));
-            index = index + 1;  %updating index
+            Data.(currSub).feat(nextFeatIdx,:) = extractRelativePower(Data.CurrData.pWelchRes,(waves(j)));
+            Data.(currSub).feat(nextFeatIdx+nFreqBands,:) = relativeLogPower(Data.CurrData.pWelchRes,(waves(j)));
+            nextFeatIdx = nextFeatIdx + 1;  
         end
-        index = index + nFreqBands;  %updating index
+        nextFeatIdx = nextFeatIdx + nFreqBands;  
 
         % calculating root Total Power
-        Data.(currSub).feat(index,:) = rootTotalPower(Data.CurrData.pWelchRes);
-        index = index + 1;  %updating index
+        Data.(currSub).feat(nextFeatIdx,:) = rootTotalPower(Data.CurrData.pWelchRes);
+        nextFeatIdx = nextFeatIdx + 1;  
 
         % calculating spectral Slop and Intercept
-        [Data.(currSub).feat(index,:),Data.(currSub).feat(index+1,:)] =...
+        [Data.(currSub).feat(nextFeatIdx,:),Data.(currSub).feat(nextFeatIdx+1,:)] =...
             spectralSlopIntercept(Data.CurrData.pWelchRes,nWindows,f);
-        index = index + 2;
+        nextFeatIdx = nextFeatIdx + 2;
 
         % calculating spectral Moment
-        Data.(currSub).feat(index,:)= spectralMoment(Data,f);
-        index = index + 1;
+        Data.(currSub).feat(nextFeatIdx,:)= spectralMoment(Data,f);
+        nextFeatIdx = nextFeatIdx + 1;
 
         % calculating spectral Edge
-        Data.(currSub).feat(index,:) = spectralEdge(Data,f,edgePrct);
-        index = index + 1;
+        Data.(currSub).feat(nextFeatIdx,:) = spectralEdge(Data,f,edgePrct);
+        nextFeatIdx = nextFeatIdx + 1;
 
         % calculating spectral Entropy
-        Data.(currSub).feat(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
-        index = index + 1;  %updating index
+        Data.(currSub).feat(nextFeatIdx,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
+        nextFeatIdx = nextFeatIdx + 1;  
     end
     
     Data.(currSub).feat = (zscore(Data.(currSub).feat,0,2));
@@ -97,22 +98,33 @@ for subNum = 1:nPatients
     %% PCA
 
     Data.(currSub).feat = Data.(currSub).feat - mean(Data.(currSub).feat,2);  
-    C = Data.(currSub).feat*Data.(currSub).feat'./nWindows-1;
+    C = (Data.(currSub).feat*Data.(currSub).feat')./nWindows-1;
     [EV,D] = eigs(C,dimReductionTo);
     Data.(currSub).PCA = EV' * Data.(currSub).feat;
 
     
     %% Plots
     figure('Units','normalized','Position',[0 0 1 1]);
-    sgtitle(Data.(currSub).pNum);
+    ttl = ['Patient ' Data.(currSub).pNum ', ' 'Seizure ' Data.(currSub).sNum];
+    sgtitle(ttl);
     hold on;
-    subplot(1,2,1)
-    scatter(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),20,1:nWindows,'filled');
-    colorbar;
-
-    subplot(1,2,2)
-    scatter3(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),Data.(currSub).PCA(3,:),20,1:nWindows,'filled');
-    colorbar;
+    
+    windTimeTillSeij = flip(-(windLen-windStep:windStep:nWindows*windStep)./60); %windows start time when 0 is the seijure time
+    
+    subplot(1,2,1);
+    scatter(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),15,windTimeTillSeij,'filled');
+    xlabel('PC-1','FontSize',12);
+    ylabel('PC-2','FontSize',12);
+    
+    subplot(1,2,2);
+    scatter3(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),Data.(currSub).PCA(3,:),15,windTimeTillSeij,'filled');
+    xlabel('PC-1','FontSize',12);
+    ylabel('PC-2','FontSize',12);
+    zlabel('PC-3','FontSize',12);
+    
+    cb = colorbar; colormap(hot);
+    cb.Label.String = "time to seizure[min]";
+    cb.Label.FontSize = 15;
     hold off;
 end
 toc
