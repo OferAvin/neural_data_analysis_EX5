@@ -1,5 +1,6 @@
-% build struct with the data from the files
-%for each patient load his data
+%this function gets the files structure and num of pationt and returns a
+%structure with field for each subject and the data which being processed
+%at the moment.
 function Data = buildDataStruct(Files,numOfPatient)
     Data = struct();
     for i = 1:numOfPatient

@@ -25,8 +25,8 @@ FeatPerElctrodes = 18;
 numOfFeat = numOfElctrodes*FeatPerElctrodes;
 edgePrct = 90;          %spectral edge percentaile
 
+dimReductionTo = 3;     %pca will reduce data dim to that number
 
-subNum = 1;
 %% files parameters
 filesPath = '..\DATA_DIR\**\';
 extension = 'mat';
@@ -44,7 +44,8 @@ for subNum = 1:nPatients
     
     Data = loadData(Data,subNum);
     currSub = char("patient" + subNum);
-        
+    
+    index = 1;
     for currElctrode = 1:numOfElctrodes
 
         % split data into windows
@@ -56,11 +57,11 @@ for subNum = 1:nPatients
         [Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
             calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
 
-        % collceting features
+        %% collceting features
         if currElctrode == 1
             Data.(currSub).feat = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
         end
-        index = 1;
+        
         % calculating relative power and relative log power for each freq bend
         for j = 1:nFreqBands
             Data.(currSub).feat(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waves(j)));
@@ -90,32 +91,20 @@ for subNum = 1:nPatients
         Data.(currSub).feat(index,:) = spectralEntropy(Data.CurrData.pWelchResNorm);
         index = index + 1;  %updating index
     end
-
-
-
-    %     meanVecPerFeat = mean(Data.(currSub).feat,2);
-    %     stdVecPerFeat = std(Data.(currSub).feat,[],2);
-    %     Data.(currSub).feat = Data.(currSub).feat- meanVecPerFeat;
-    %     Data.(currSub).feat = Data.(currSub).feat./stdVecPerFeat;
-
-
+    
     Data.(currSub).feat = (zscore(Data.(currSub).feat,0,2));
 
     %% PCA
 
     Data.(currSub).feat = Data.(currSub).feat - mean(Data.(currSub).feat,2);  
-    C = Data.(currSub).feat*Data.(currSub).feat'/nWindows-1;
-    [EV,D] = eigs(C,3);
+    C = Data.(currSub).feat*Data.(currSub).feat'./nWindows-1;
+    [EV,D] = eigs(C,dimReductionTo);
     Data.(currSub).PCA = EV' * Data.(currSub).feat;
 
-    eigenvalues = diag(D);
-    % eigenvaluesSort = sort(eigenvalues,'descend');
-    % Encoding
-    %y = V'*(
-
-
+    
+    %% Plots
     figure('Units','normalized','Position',[0 0 1 1]);
-%    sgtitle(Data.(currSub).pNum);
+    sgtitle(Data.(currSub).pNum);
     hold on;
     subplot(1,2,1)
     scatter(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),20,1:nWindows,'filled');

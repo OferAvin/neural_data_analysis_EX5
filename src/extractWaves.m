@@ -1,3 +1,5 @@
+% this function gets ech bend boundaries as an input and returns the bend
+%frequencies according  to the whole range - f as an output.
 function waveCell = extractWaves(delta, theta, lowAlpha, highAlpha, beta, gamma, range)
     
     delta_rng = find(range >= delta(1) & range <= delta(end));
