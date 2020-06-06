@@ -60,7 +60,7 @@ for subNum = 1:nPatients
         if currElctrode == 1
             Data.(currSub).feat = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
         end
-
+        index = 1;
         % calculating relative power and relative log power for each freq bend
         for j = 1:nFreqBands
             Data.(currSub).feat(index,:) = extractRelativePower(Data.CurrData.pWelchRes,(waves(j)));
