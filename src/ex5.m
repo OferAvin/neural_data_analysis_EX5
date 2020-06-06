@@ -115,7 +115,7 @@ for subNum = 1:nPatients
 
 
     figure('Units','normalized','Position',[0 0 1 1]);
-    sgtitle(Data.(currSub).pNum);
+%    sgtitle(Data.(currSub).pNum);
     hold on;
     subplot(1,2,1)
     scatter(Data.(currSub).PCA(1,:),Data.(currSub).PCA(2,:),20,1:nWindows,'filled');
