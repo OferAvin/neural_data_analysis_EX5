@@ -7,7 +7,7 @@ close all
 %data
 Fs = 250;
 f = 1:0.1:40;
-windLen = 30;            % signal length in secs
+windLen = 30;               % signal length in secs
 windStep = 15;              % signal overlap in secs
 pwelchWindow = 5;           %window length in secs
 pwelchOverlap = 1;          %window overlap length in secs
@@ -21,7 +21,7 @@ lowAlpha = 8:0.1:11.5;
 highAlpha = 11.5:0.1:15;
 beta = 15:0.1:30;
 gamma = 30:0.1:40;
-waves = extractWaves(delta, theta, lowAlpha, highAlpha, beta, gamma, f);
+waves = extractWavesIdx(delta, theta, lowAlpha, highAlpha, beta, gamma, f);
 
 % features
 FeatPerElctrodes = 18;
@@ -37,9 +37,12 @@ extension = 'mat';
 containedCahr = 'p*\d*_*s*\d';
 
 
+
 %% Start proccess
 
 [Data,nPatients] = structFromFileName(filesPath, extension, containedCahr);
+
+%% start process
 
 for subNum = 1:nPatients
     
@@ -60,7 +63,7 @@ for subNum = 1:nPatients
 
         %% collceting features
         if currElctrode == 1
-            Data.(currSub).feat = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));
+            Data.(currSub).feat = zeros(numOfFeat,size(Data.CurrData.pWelchRes,2));     %allocating feature matrix
         end
         
         % calculating relative power and relative log power for each freq bend
@@ -98,7 +101,7 @@ for subNum = 1:nPatients
     %% PCA
 
     Data.(currSub).feat = Data.(currSub).feat - mean(Data.(currSub).feat,2);  
-    C = (Data.(currSub).feat*Data.(currSub).feat')./nWindows-1;
+    C = Data.(currSub).feat*Data.(currSub).feat'./(nWindows-1);
     [EV,D] = eigs(C,dimReductionTo);
     Data.(currSub).PCA = EV' * Data.(currSub).feat;
 
