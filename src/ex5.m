@@ -8,7 +8,7 @@ close all
 Fs = 250;
 f = 1:0.1:40;
 windLen = 40;               % signal length in secs
-windStep = 20;              % signal overlap in secs
+windStep = 20;              % window step in secs
 pwelchWindow = 5;           %window length in secs
 pwelchOverlap = 1;          %window overlap length in secs
 numOfElctrodes = 19;
@@ -24,8 +24,7 @@ gamma = 30:0.1:40;
 waves = extractWavesIdx(delta, theta, lowAlpha, highAlpha, beta, gamma, f);
 
 % features
-features = features();
-featPerElctrodes = length(features);
+featPerElctrodes = 18;
 numOfFeat = numOfElctrodes*featPerElctrodes;
 edgePrct = 90;          %spectral edge percentaile
 
@@ -107,7 +106,7 @@ for subNum = 1:nPatients
     C = Data.(currSub).feat*Data.(currSub).feat'./(nWindows-1);
     [EV,D] = eigs(C,dimReductionTo);
     Data.(currSub).PCA = EV' * Data.(currSub).feat;
-    [relevFeat,elec] = getMostImportantFeat(2,EV,features,numOfElctrodes,featPerElctrodes);
+    
 
     
     %% Plots
