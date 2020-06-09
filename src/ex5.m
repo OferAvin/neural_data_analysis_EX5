@@ -54,13 +54,15 @@ for subNum = 1:nPatients
     for currElctrode = 1:numOfElctrodes
 
         % split data into windows
-        allWindowes = splitSignal(Data,windLen,windStep,currElctrode,Fs);
+        ratio = windStep/windLen;
+        overlap = (1-ratio)*windLen;
+        [allWindowes,~] = buffer(Data.CurrData.rawData(currElctrode,:) ,windLen*Fs ,overlap*Fs, 'nodelay');
         nWindows = size(allWindowes,2); 
         
         
         %calculating pWelch
-        [Data.CurrData.pWelchRes,Data.CurrData.pWelchResNorm] = ...
-            calcPwelch(allWindowes,pwelchWindow,pwelchOverlap,f,Fs);
+        Data.CurrData.pWelchRes = pwelch(allWindowes ,pwelchWindow*Fs, pwelchOverlap*Fs ,f ,Fs);
+        Data.CurrData.pWelchResNorm = Data.CurrData.pWelchRes./(sum(Data.CurrData.pWelchRes,1));
 
         %% collceting features
         if currElctrode == 1
