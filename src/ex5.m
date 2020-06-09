@@ -112,7 +112,7 @@ for subNum = 1:nPatients
     %% Plots
     figure('Units','normalized','Position',[0 0 1 1]);
     ttl = ['Patient ' Data.(currSub).pNum ', ' 'Seizure ' Data.(currSub).sNum];
-    sgtitle(ttl);
+    %sgtitle(ttl);
     hold on;
     
     windTimeTillSeij = flip(-(windLen-windStep:windStep:nWindows*windStep)./60); %windows start time when 0 is the seijure time
