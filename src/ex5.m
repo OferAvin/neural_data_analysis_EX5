@@ -7,8 +7,8 @@ close all
 %data
 Fs = 250;
 f = 1:0.1:40;
-windLen = 30;               % signal length in secs
-windStep = 15;              % signal overlap in secs
+windLen = 40;               % signal length in secs
+windStep = 20;              % signal overlap in secs
 pwelchWindow = 5;           %window length in secs
 pwelchOverlap = 1;          %window overlap length in secs
 numOfElctrodes = 19;
@@ -130,7 +130,7 @@ for subNum = 1:nPatients
     cb = colorbar; colormap(hot);
     cb.Label.String = "time to seizure[min]";
     cb.Label.FontSize = 15;
-    
+    caxis([-100 0]);
     hold off;
 end
 toc
